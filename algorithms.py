@@ -28,10 +28,31 @@ class LZ77:
         if len(input) <= self.searchBuffSize:
             return codeword
 
-        pointer = self.searchBuffSize
-        while pointer < len(input):
-            
+        pt = self.searchBuffSize
 
+        while pt < len(input):
+            offset = self.searchBuffSize
+            recurrentLength = 0
+            curOffset = self.searchBuffSize
+            curLength = 0
+            while curOffset > 0:
+                if input[pt-curOffset] == input[pt]:
+                    curLength += 1
+                else:
+                    if curLength > recurrentLength:
+                        offset = curOffset
+                        recurrentLength = curLength
+                    curOffset -= curLength
+                    curLength = 0
+            length = recurrentLength # recurrent length
+            while pt + length < len(input) and input[pt + length] == \
+                    input[pt + length - recurrentLength]:
+                length += 1
+            pt += length
+            if pt == len(input):
+                codeword.append((offset, length, 3))
+            else:
+                codeword.append((offset, length, ord(input[pt+length])))
         return codeword
 
     def decode(self, codeword):
