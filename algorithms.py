@@ -14,17 +14,15 @@ class LZ77:
         """
         :param input: should be a list containing characters
         eg:
-        input = ['A', 'B', 'C', '0', '1']
+        input = "cabracadabrarrarrad"
         :return: a 1-dimensional list of numbers
         i.e  [o_1, l_1, c_1, o_2, l_2, c_2, ...., o_n, l_n, c_n]
         where 'o_i' is the offset, 'l_i' is the length of the match, and 'c_i' is the codeword corresponding to
         the symbol in the look-ahead buffer
         """
-        maxLenMatched = [0]*self.searchBuffSize
-        i = 0
         codeword = []
         for i in range(min(self.searchBuffSize, len(input))):
-            codeword.append((0, 0, ord(input[i])))
+            codeword.extend((0, 0, ord(input[i])))
         if len(input) <= self.searchBuffSize:
             return codeword
 
@@ -32,30 +30,46 @@ class LZ77:
 
         while pt < len(input):
             offset = self.searchBuffSize
-            recurrentLength = 0
+            length = 0
             curOffset = self.searchBuffSize
             curLength = 0
-            while curOffset > 0:
-                if input[pt-curOffset] == input[pt]:
+            while curOffset > 0 and pt+curLength < len(input):
+                print("input[pt-curOffset+curLength] = %c, input[pt+curLength] = %c"
+                      %(input[pt-curOffset+curLength], input[pt+curLength]))
+                if input[pt-curOffset+curLength] == input[pt+curLength]:
                     curLength += 1
                 else:
-                    if curLength > recurrentLength:
+                    if curLength > length:
                         offset = curOffset
-                        recurrentLength = curLength
-                    curOffset -= curLength
+                        length = curLength
+                    curOffset -= (curLength+1)
                     curLength = 0
-            length = recurrentLength # recurrent length
-            while pt + length < len(input) and input[pt + length] == \
-                    input[pt + length - recurrentLength]:
-                length += 1
             pt += length
             if pt == len(input):
-                codeword.append((offset, length, 3))
+                codeword.extend((offset, length, 3)) # ASCII(^C) = 3
             else:
-                codeword.append((offset, length, ord(input[pt+length])))
+                codeword.extend((offset, length, ord(input[pt+length])))
         return codeword
 
     def decode(self, codeword):
-        pass
+        """
 
+        :param codeword: a 1-dimensional list of numbers, must be multiple of 3
+        :return:
+        """
+        output = ""
+        for i in range(0, len(codeword), 3):
+            o, l, c = codeword[i:i+3]
+            for j in range(l):
+                output += output[-o]
+            if c != 3:
+                output += chr(c)
+        return output
+
+
+if __name__ == '__main__':
+    input = "cabracadabrarrarrad"
+    lz77coder = LZ77(8, 7)
+    codeword = lz77coder.encode(input)
+    print("codeword = ", codeword)
 
