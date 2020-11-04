@@ -1,10 +1,8 @@
-import numpy as np
-
-
 class LZ77:
     """
     define codeword method C(d) = ASCII(d)
     """
+
     def __init__(self, searchBuffSize, lookAheadBuffSize):
         self.searchBuffSize = searchBuffSize
         self.lookAheadBuffSize = lookAheadBuffSize
@@ -35,10 +33,10 @@ class LZ77:
             length = 0
             curOffset = self.searchBuffSize
             curLength = 0
-            while curOffset > 0 and pt+curLength < len(input):
-                search = input[pt-curOffset+curLength]
-                lookAhead = input[pt+curLength]
-                if input[pt-curOffset+curLength] == input[pt+curLength]:
+            while curOffset > 0 and pt + curLength < len(input):
+                search = input[pt - curOffset + curLength]
+                lookAhead = input[pt + curLength]
+                if input[pt - curOffset + curLength] == input[pt + curLength]:
                     curLength += 1
                 else:
                     if curLength > length:
@@ -48,7 +46,7 @@ class LZ77:
                     curLength = 0
             pt += length
             if pt == len(input):
-                codeword.extend((offset, length, 3)) # ASCII(^C) = 3, means end of file
+                codeword.extend((offset, length, 3))  # ASCII(^C) = 3, means end of file
             else:
                 codeword.extend((offset, length, ord(input[pt])))
             pt += 1
@@ -65,7 +63,7 @@ class LZ77:
         """
         output = ""
         for i in range(0, len(codeword), 3):
-            o, l, c = codeword[i:i+3]
+            o, l, c = codeword[i:i + 3]
             for j in range(l):
                 output += output[-o]
             if c != 3:
@@ -76,33 +74,54 @@ class LZ77:
 class LZ78:
 
     def __init__(self):
+        pass
 
     def encode(self, input):
-        output = []
+        codeword = []
         entry = []
         i = 0
         while i < len(input):
-            j = len(output)-1
+            j = len(codeword) - 1
             while j >= 0:
-                if i+len(entry[j]) < len(input) and entry[j] == input[i:i+len(entry[j])]:
-                    output.append([j+1, ord(input[i + len(entry[j])])])
-                    entry.append(entry[j]+input[i+len(entry[j])])
+                if i + len(entry[j]) < len(input) and entry[j] == input[i:i + len(entry[j])]:
+                    codeword.append([j + 1, ord(input[i + len(entry[j])])])
+                    entry.append(entry[j] + input[i + len(entry[j])])
                     break
                 j -= 1
             if j == -1:
-                output.append([0, ord(input[i])])
+                codeword.append([0, ord(input[i])])
                 entry.append(input[i])
+                i += 1
+            else:
+                i += len(entry[j]) + 1
+        return codeword
+
+    def decode(self, codeword):
+        output = ""
+        entry = []
+        for i in range(len(codeword)):
+            j, c = codeword[i]
+            c = chr(c)
+            if j == 0:
+                entry.append(c)
+                output += c
+            else:
+                entry.append(entry[j - 1] + c)
+                output += entry[j - 1] + c
         return output
-
-    def decode(self, output):
-        pass
-
 
 
 if __name__ == '__main__':
-    input = "cabracadabrarrarrad"
-    lz77coder = LZ77(8, 7)
-    codeword = lz77coder.encode(input)
+    # input = "cabracadabrarrarrad"
+    # lz77coder = LZ77(8, 7)
+    # codeword = lz77coder.encode(input)
+    # print("codeword = ", codeword)
+    # output = lz77coder.decode(codeword)
+    # print("output = ", output)
+
+    lz78coder = LZ78()
+    input = "wabbaywabbaywabbaywabbaywooywooywoo"
+    codeword = lz78coder.encode(input)
     print("codeword = ", codeword)
-    output = lz77coder.decode(codeword)
+    output = lz78coder.decode(codeword)
     print("output = ", output)
