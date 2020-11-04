@@ -3,7 +3,7 @@ import numpy as np
 
 class LZ77:
     """
-    define coding method C(d) = ASCII(d)
+    define codeword method C(d) = ASCII(d)
     """
     def __init__(self, searchBuffSize, lookAheadBuffSize):
         self.searchBuffSize = searchBuffSize
@@ -13,12 +13,14 @@ class LZ77:
     def encode(self, input):
         """
         :param input: should be a list containing characters
-        eg:
-        input = "cabracadabrarrarrad"
         :return: a 1-dimensional list of numbers
         i.e  [o_1, l_1, c_1, o_2, l_2, c_2, ...., o_n, l_n, c_n]
         where 'o_i' is the offset, 'l_i' is the length of the match, and 'c_i' is the codeword corresponding to
         the symbol in the look-ahead buffer
+
+        e.g:
+        input = "cabracadabrarrarrad"
+        codeword = [0, 0, 99, 0, 0, 97, 0, 0, 98, 0, 0, 114, 0, 0, 97, 0, 0, 99, 0, 0, 97, 0, 0, 100, 7, 4, 114, 3, 5, 100]
         """
         codeword = []
         for i in range(min(self.searchBuffSize, len(input))):
@@ -34,28 +36,32 @@ class LZ77:
             curOffset = self.searchBuffSize
             curLength = 0
             while curOffset > 0 and pt+curLength < len(input):
-                print("input[pt-curOffset+curLength] = %c, input[pt+curLength] = %c"
-                      %(input[pt-curOffset+curLength], input[pt+curLength]))
+                search = input[pt-curOffset+curLength]
+                lookAhead = input[pt+curLength]
                 if input[pt-curOffset+curLength] == input[pt+curLength]:
                     curLength += 1
                 else:
                     if curLength > length:
                         offset = curOffset
                         length = curLength
-                    curOffset -= (curLength+1)
+                    curOffset -= 1
                     curLength = 0
             pt += length
             if pt == len(input):
-                codeword.extend((offset, length, 3)) # ASCII(^C) = 3
+                codeword.extend((offset, length, 3)) # ASCII(^C) = 3, means end of file
             else:
-                codeword.extend((offset, length, ord(input[pt+length])))
+                codeword.extend((offset, length, ord(input[pt])))
+            pt += 1
         return codeword
 
     def decode(self, codeword):
         """
-
         :param codeword: a 1-dimensional list of numbers, must be multiple of 3
-        :return:
+        :return: a string containing the characters encoded
+
+        e.g:
+        codeword = [0, 0, 99, 0, 0, 97, 0, 0, 98, 0, 0, 114, 0, 0, 97, 0, 0, 99, 0, 0, 97, 0, 0, 100, 7, 4, 114, 3, 5, 100]
+        output = "cabracadabrarrarrad"
         """
         output = ""
         for i in range(0, len(codeword), 3):
@@ -67,9 +73,36 @@ class LZ77:
         return output
 
 
+class LZ78:
+
+    def __init__(self):
+
+    def encode(self, input):
+        output = []
+        entry = []
+        i = 0
+        while i < len(input):
+            j = len(output)-1
+            while j >= 0:
+                if i+len(entry[j]) < len(input) and entry[j] == input[i:i+len(entry[j])]:
+                    output.append([j+1, ord(input[i + len(entry[j])])])
+                    entry.append(entry[j]+input[i+len(entry[j])])
+                    break
+                j -= 1
+            if j == -1:
+                output.append([0, ord(input[i])])
+                entry.append(input[i])
+        return output
+
+    def decode(self, output):
+        pass
+
+
+
 if __name__ == '__main__':
     input = "cabracadabrarrarrad"
     lz77coder = LZ77(8, 7)
     codeword = lz77coder.encode(input)
     print("codeword = ", codeword)
-
+    output = lz77coder.decode(codeword)
+    print("output = ", output)
