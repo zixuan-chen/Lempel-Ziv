@@ -214,7 +214,7 @@ if __name__ == '__main__':
 
 # test3: test for coding rate of LZ77 and LZ78
     print("==================test_case-3=====================")
-    input_path = "C:\\Users\\ChenZixuan\\Desktop\\testfile.txt"
+    input_path = "testfile.txt"
     f = open(input_path, 'r', encoding='utf-8')
     input_string3 = f.read()
     print("total number of characters: ", len(input_string3))
